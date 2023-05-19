@@ -23,7 +23,7 @@ class JojoAPI:
         signed_message = w3.eth.account.signHash(message_hash, private_key=self.private_key)
         return signed_message.signature
 
-    def authenticate(self, endpoint, payload=None):
+    def authenticate(self, method, endpoint, payload=None):
         if payload is None:
             payload = {}
         message = json.dumps(payload, sort_keys=True)
@@ -33,11 +33,22 @@ class JojoAPI:
             'JOJO-SIGNATURE': signature,
             'JOJO-PAYLOAD': message
         }
-        return requests.get(self.base_url + endpoint, headers=headers)
+        url = self.base_url + endpoint
+        if method.lower() == 'get':
+            return requests.get(url, headers=headers)
+        elif method.lower() == 'post':
+            return requests.post(url, headers=headers, json=payload)
+        elif method.lower() == 'delete':
+            return requests.delete(url, headers=headers, json=payload)
 
-    def get_data(self, endpoint):
-        response = self.authenticate(endpoint)
-        return response.json()
+    def post_data(self, endpoint, payload=None):
+        return self.authenticate('post', endpoint, payload).json()
+
+    def get_data(self, endpoint, payload=None):
+        return self.authenticate('get', endpoint, payload).json()
+
+    def delete_data(self, endpoint, payload=None):
+        return self.authenticate('delete', endpoint, payload).json()
 
     def get_time(self):
         endpoint = "/v1/time"
@@ -79,6 +90,50 @@ class JojoAPI:
         response = requests.get(self.base_url + endpoint)
         return response.json()
 
+    # Account endpoints
+    def post_account(self, payload):
+        return self.post_data("/v1/account", payload)
+
+    def get_account(self):
+        return self.get_data("/v1/account")
+
+    # Order endpoints
+    def post_order_build(self, payload):
+        return self.post_data("/v1/order/build", payload)
+
+    def post_order(self, payload):
+        return self.post_data("/v1/order", payload)
+
+    def delete_order(self, payload):
+        return self.delete_data("/v1/order", payload)
+
+    def delete_all_open_orders(self, payload):
+        return self.delete_data("/v1/allOpenOrders", payload)
+
+    def get_history_orders(self):
+        return self.get_data("/v1/historyOrders")
+
+    def get_order(self):
+        return self.get_data("/v1/order")
+
+    def get_open_order(self):
+        return self.get_data("/v1/openOrder")
+
+    def get_open_orders(self):
+        return self.get_data("/v1/openOrders")
+
+    def get_user_trades(self):
+        return self.get_data("/v1/userTrades")
+
+    def get_incomes(self):
+        return self.get_data("/v1/incomes")
+
+    def get_balances(self):
+        return self.get_data("/v1/balances")
+
+    def get_positions(self):
+        return self.get_data("/v1/positions")
+
 # usage
 
 
@@ -91,3 +146,18 @@ print(api_client.get_historical_trades())
 print(api_client.get_klines())
 print(api_client.get_funding_rate())
 print(api_client.get_risky_accounts())
+payload = {}  # TODO: Replace with actual payload
+print(api_client.post_account(payload))
+print(api_client.get_account())
+print(api_client.post_order_build(payload))
+print(api_client.post_order(payload))
+print(api_client.delete_order(payload))
+print(api_client.delete_all_open_orders(payload))
+print(api_client.get_history_orders())
+print(api_client.get_order())
+print(api_client.get_open_order())
+print(api_client.get_open_orders())
+print(api_client.get_user_trades())
+print(api_client.get_incomes())
+print(api_client.get_balances())
+print(api_client.get_positions())
